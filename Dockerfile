@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 
 RUN apt-get update && apt-get install -y cron && apt-get install -y curl
 
-# Add backup script
+# Add bash scripts
 COPY thm-answer.sh /app/
 RUN chmod +x /app/thm-answer.sh
 COPY thm-reset.sh /app/
