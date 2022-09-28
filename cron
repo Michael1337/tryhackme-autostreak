@@ -1,0 +1,3 @@
+10 */12 * * * bash /app/thm-reset.sh
+20 */12 * * * bash /app/thm-answer.sh
+0 0 * * 0 > /var/log/cron.log
