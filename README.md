@@ -1,6 +1,6 @@
 # tryhackme-autostreak
 A dockerized bash script to automatically keep your streak on TryHackMe alive.
-Log into your https://tryhackme.com/ account, go to any room that has an answer with no value, e.g. https://tryhackme.com/room/tickets3 and get two HTPP requests:
+Log into your https://tryhackme.com/ account, go to any room that has an answer with no value, e.g. https://tryhackme.com/room/tickets3 and get two fetch requests:
 - one for answering a question
 - another one for resetting the progress in that room.
 
