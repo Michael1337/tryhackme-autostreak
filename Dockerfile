@@ -7,6 +7,8 @@ COPY thm-answer.sh /app/
 RUN chmod +x /app/thm-answer.sh
 COPY thm-reset.sh /app/
 RUN chmod +x /app/thm-reset.sh
+COPY check-log.sh /app/
+RUN chmod +x /app/check-log.sh
 
 # Configure the cron
 # Copy file to the cron.d directory
