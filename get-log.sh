@@ -27,7 +27,7 @@ if echo "$last_two" | grep -q '"isCorrect":true'; then
   streak="$(echo "$last_two" | grep '"currentStreak":' | sed -n 's/.*"currentStreak":[ ]*\([0-9]*\).*/\1/p' | tail -n 1)"
   if [ -n "$streak" ]; then
     if echo "$last_two" | grep -q '"isStreakIncreased":true'; then
-      echo "✅ streak just increased to $streak"
+      echo "✅ streak is alive and increased to $streak"
     else
       echo "✅ streak is alive at $streak"
     fi
