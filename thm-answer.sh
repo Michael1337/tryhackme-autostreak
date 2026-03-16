@@ -1,7 +1,10 @@
 #!/bin/bash
 curl 'https://tryhackme.com/api/tickets3/answer' \
 
-	#your fetch data here
+	# your fetch data here; don't forget the backslash \
 
-  --compressed >> /var/log/cron.log 2>&1
+  --compressed \
+  --silent \
+  --show-error \
+  | xargs -0 echo >> /var/log/cron.log 2>&1
   

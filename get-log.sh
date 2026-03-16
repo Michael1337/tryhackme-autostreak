@@ -19,16 +19,21 @@ if [ -z "$block" ]; then
   exit 0
 fi
 
-# Take only the last two JSON‑like lines from today
 last_two="$(echo "$block" | tail -n 2)"
 
-if echo "$last_two" | grep -q '"isCorrect":true,"isStreakIncreased":true'; then
-    # First call of the day succeeded and increased streak
-    echo "✅ streak is alive"
-elif echo "$last_two" | grep -q '"isCorrect":true'; then
-    # At least one of the last two calls was correct (either first or second)
-    echo "✅ streak is alive"
+# Try to get the streak from the last success line
+if echo "$last_two" | grep -q '"isCorrect":true'; then
+  # Use grep + sed to extract currentStreak
+  streak="$(echo "$last_two" | grep '"currentStreak":' | sed -n 's/.*"currentStreak":[ ]*\([0-9]*\).*/\1/p' | tail -n 1)"
+  if [ -n "$streak" ]; then
+    if echo "$last_two" | grep -q '"isStreakIncreased":true'; then
+      echo "✅ streak just increased to $streak"
+    else
+      echo "✅ streak is alive at $streak"
+    fi
+  else
+    echo "✅ streak is alive (streak lookup failed)"
+  fi
 else
-    # Both last calls were incorrect
-    echo "🔴 streak is in danger, last: $(echo "$last_two" | tail -n 1)"
+  echo "🔴 streak is in danger, last: $(echo "$last_two" | tail -n 1)"
 fi
