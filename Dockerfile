@@ -8,9 +8,11 @@ RUN chmod +x /app/thm-answer.sh
 COPY thm-reset.sh /app/
 RUN chmod +x /app/thm-reset.sh
 COPY get-log.sh /app/
-RUN chmod +x /app/get-log.sh
 COPY thm-datelog.sh /app/
 RUN chmod +x /app/thm-datelog.sh
+RUN chmod +x /app/get-log.sh
+COPY send-gotify.sh /app/
+RUN chmod +x /app/send-gotify.sh
 
 # Configure the cron
 # Copy file to the cron.d directory

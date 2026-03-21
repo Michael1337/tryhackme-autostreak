@@ -1,5 +1,5 @@
 1 */12 * * * bash /app/thm-datelog.sh
 10 */12 * * * bash /app/thm-reset.sh
 20 */12 * * * bash /app/thm-answer.sh
-# 30 0 * * * curl "https://gotify.yourdomain.tld/message?token=YourAppToken" -F "title=TryHackMe ($(date '+\%Y-\%m-\%d'))" -F "message=$(/app/get-log.sh)" -F "priority=$(/app/get-log.sh | grep -q 'streak is alive' && echo 2 || echo 8)"
+# 30 0 * * * bash /app/send-gotify.sh
 0 0 * * 0 > /var/log/cron.log
