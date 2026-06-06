@@ -1,15 +1,19 @@
 FROM ghcr.io/puppeteer/puppeteer:latest
 
+USER root
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends cron util-linux \
+  && rm -rf /var/lib/apt/lists/*
+
+USER pptruser
+
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm ci
 
 COPY . .
-
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends cron util-linux \
-  && rm -rf /var/lib/apt/lists/*
 
 COPY crontab /etc/cron.d/tryhackme-cron
 RUN chmod 0644 /etc/cron.d/tryhackme-cron \
