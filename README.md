@@ -1,39 +1,142 @@
-# tryhackme-autostreak
-A dockerized bash script to automatically keep your streak on TryHackMe alive.
-Log into your https://tryhackme.com/ account, go to any room that has an answer with no value, e.g. https://tryhackme.com/room/tickets3 and get two fetch requests:
-- one for answering a question
-- another one for resetting the progress in that room.
+# TryHackMe Autostreak
 
-You can use Google Chrome, open the developer tools (F12), switch to the network tab, select only Fetch/XHR, check "Preserve log" and then 
-- click on "Completed" to get the "answer" request
-- click on "Reset Progress" and confirm the warning to get the "reset-progress" request
+This project runs a Puppeteer-based automation inside Docker and keeps the container alive with cron. The job runs twice a day at **02:30** and **14:30** using the container’s own scheduler.
 
-For both of them, you want to "Copy as cURL (bash)".
+## What it does
 
-Then, insert your fetch request into the .sh scripts. I left parts of the scripts there so you know you go the correct ones. Notice the ">> /var/log/cron.log 2>&1" at the end. That's to save the bash output to a log file to review them later in case something doesn't work. The log file is cleared once a week.
+- Opens the TryHackMe `tickets3` room.
+- Runs the reset flow.
+- Submits the room check.
+- Sends optional Gotify or Telegram notifications.
+- Retries up to 5 times with a 30 second delay between attempts.
+- Prevents overlapping runs with a lock file.
 
-I configured the cronjobs to run twice a day, just in case something is not working at one of the two times.
+## Files
 
-Also, if you use gotify (https://gotify.net/), you can uncomment the third line in the cron file and adjust the domain and token to get the last line of your logs messaged to you. That will usually include the timestamp of your latest correct answer, so you can easily see if it is still up-to-date.
+- `index.js` — main automation script.
+- `login.js` — manual login helper that saves cookies.
+- `config.js` — static settings for room URL, selectors, retry timing, and notifications.
+- `notifications.js` — Gotify / Telegram notification helpers.
+- `state.js` — stores run state so the second daily run can exit early if the streak was already secured.
+- `run.sh` — lock wrapper to prevent overlapping runs.
+- `crontab` — cron schedule for the container.
+- `Dockerfile` — container image.
+- `docker-compose.yml` — Compose setup for running the container.
+- `cookies.json` — saved TryHackMe session cookies.
 
-To build the docker image:
+## Initial setup
 
-```bash
-docker build -t thm_streak .
-```
-
-And to run the container:
-
-```bash
-docker run -d --name=thm_streak --restart=unless-stopped thm_streak
-```
-
-In case you want to see the logs:
+### 1. Install dependencies locally
 
 ```bash
-docker exec -it thm_streak bash
+npm install
 ```
 
-The logs are in /var/log/cron.log. You could also create a volume of course.
+### 2. Log in once and save cookies
 
-Obviously you don't have to use docker. In that case, just copy the contents of "cron" into your crontab file and adjust the paths to the .sh scripts according to where you place the files.
+Run the login helper:
+
+```bash
+node login.js
+```
+
+A browser window will open. Log in manually to TryHackMe, then confirm in the terminal so the cookies are saved to `cookies.json`.
+
+### 3. Test locally
+
+```bash
+node index.js
+```
+
+If the session is valid, the script should run the reset/check flow and print the API response.
+
+## Docker Compose
+
+Build and start the container:
+
+```bash
+docker compose up -d --build
+```
+
+Check status:
+
+```bash
+docker compose ps
+```
+
+View logs:
+
+```bash
+docker compose logs -f
+```
+
+The Compose file mounts:
+
+- `./cookies.json` into `/app/cookies.json`.
+- `./logs` into `/var/log`.
+
+## Scheduling inside the container
+
+The container runs cron in the foreground. Cron executes `/app/run.sh` at:
+
+- **02:30 daily**
+- **14:30 daily**
+
+`run.sh` uses `flock` so if one run is already active, the next scheduled run exits immediately instead of overlapping.
+
+## Retry behavior
+
+Each scheduled run retries the automation up to **5 times** with a **30 second** delay between attempts. This is intended to handle temporary failures without retrying forever.
+
+## Overlap protection
+
+Overlap is prevented in two ways:
+
+1. `flock -n /tmp/tryhackme.lock` blocks concurrent runs.
+2. The daily state file can be used so the second run exits early if the streak was already increased earlier that day.
+
+## Notifications
+
+Optional notification support is available for:
+
+- Gotify.
+- Telegram.
+
+Notification text is based on the API response:
+
+- If `isStreakIncreased` is `true`, the message says the streak is alive and includes the new streak number.
+- If `isStreakIncreased` is `false`, the message warns that the streak is in danger.
+
+The title includes the current date, for example:
+
+- `TryHackMe (2026-06-01)`
+
+## Refreshing login
+
+If the session expires:
+
+1. Stop the container.
+2. Run `node login.js`.
+3. Save the new `cookies.json`.
+4. Start the container again:
+
+```bash
+docker compose up -d
+```
+
+## Logs
+
+Cron output is written to the mounted `./logs` directory on the host.
+
+Example:
+
+```bash
+tail -f ./logs/tryhackme.log
+```
+
+## Notes
+
+- Keep `cookies.json` private.
+- Do not commit cookies to version control.
+- If the room UI changes, update the selectors in `config.js`.
+- If the challenge page appears instead of the room, the current session or browser verification may need attention.

@@ -1,0 +1,14 @@
+{
+  "name": "tryhackme-answer-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "login": "node login.js",
+    "run": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "puppeteer": "^25.1.0"
+  }
+}

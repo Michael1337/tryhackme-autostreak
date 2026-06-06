@@ -1,0 +1,6 @@
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+30 2 * * * /app/run.sh >> /var/log/tryhackme.log 2>&1
+30 14 * * * /app/run.sh >> /var/log/tryhackme.log 2>&1
+0 0 * * 0 > /var/log/tryhackme.log

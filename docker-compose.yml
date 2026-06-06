@@ -1,0 +1,8 @@
+services:
+  thm_streak:
+    build: .
+    container_name: thm_streak
+    restart: unless-stopped
+    volumes:
+      - ./cookies.json:/app/cookies.json:ro
+      - ./logs:/var/log

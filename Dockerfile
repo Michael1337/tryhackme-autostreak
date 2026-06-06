@@ -1,31 +1,20 @@
-FROM ubuntu:20.04
+FROM ghcr.io/puppeteer/puppeteer:latest
 
-RUN apt-get update && apt-get install -y cron && apt-get install -y curl
+WORKDIR /app
 
-# Add bash scripts
-COPY thm-answer.sh /app/
-RUN chmod +x /app/thm-answer.sh
-COPY thm-reset.sh /app/
-RUN chmod +x /app/thm-reset.sh
-COPY get-log.sh /app/
-COPY thm-datelog.sh /app/
-RUN chmod +x /app/thm-datelog.sh
-RUN chmod +x /app/get-log.sh
-COPY send-gotify.sh /app/
-RUN chmod +x /app/send-gotify.sh
+COPY package*.json ./
+RUN npm ci
 
-# Configure the cron
-# Copy file to the cron.d directory
-COPY cron /etc/cron.d/cron
+COPY . .
 
-# Give execution rights on the cron job
-RUN chmod 0644 /etc/cron.d/cron
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends cron util-linux \
+  && rm -rf /var/lib/apt/lists/*
 
-# Apply cron job
-RUN crontab /etc/cron.d/cron
+COPY crontab /etc/cron.d/tryhackme-cron
+RUN chmod 0644 /etc/cron.d/tryhackme-cron \
+  && crontab /etc/cron.d/tryhackme-cron \
+  && chmod +x /app/run.sh \
+  && mkdir -p /var/log
 
-# Create the log file to be able to run tail
-RUN touch /var/log/cron.log
-
-# Start the cron
-CMD cron && tail -f /var/log/cron.log
+CMD ["cron", "-f"]
