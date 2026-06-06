@@ -6,8 +6,6 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends cron util-linux \
   && rm -rf /var/lib/apt/lists/*
 
-USER pptruser
-
 WORKDIR /app
 
 COPY package*.json ./
@@ -20,5 +18,7 @@ RUN chmod 0644 /etc/cron.d/tryhackme-cron \
   && crontab /etc/cron.d/tryhackme-cron \
   && chmod +x /app/run.sh \
   && mkdir -p /var/log
+
+USER pptruser
 
 CMD ["cron", "-f"]
