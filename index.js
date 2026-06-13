@@ -94,7 +94,7 @@ async function clickByText(page, text, containerSelector = 'body') {
  */
 async function runOnce() {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: 'new',
     defaultViewport: { width: 1920, height: 1080 },
     args: [
       '--no-sandbox',
