@@ -94,7 +94,7 @@ async function clickByText(page, text, containerSelector = 'body') {
  */
 async function runOnce() {
   const browser = await puppeteer.launch({
-    headless: 'new',
+    headless: false,
     defaultViewport: { width: 1920, height: 1080 },
     args: [
       '--no-sandbox',
@@ -112,6 +112,14 @@ async function runOnce() {
 
     await page.goto(config.roomUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await sleep(config.waitAfterPageLoadMs);
+
+    const isLoggedOut = await page
+      .$eval('body', root => (root.innerText || root.textContent || '').includes('This room is private'))
+      .catch(() => true);
+
+    if (isLoggedOut) {
+      throw new Error('Logged out.');
+    }
 
     const hasOptions = await page
       .$eval('body', root => (root.innerText || root.textContent || '').includes('Options'))
@@ -200,6 +208,11 @@ async function main() {
     }
 
     const ok = await runOnce().catch(err => {
+      if(err.message.includes('Logged out')) {
+        console.error('Logged out.');
+        notify('TryHackMe AutoStreak', 'Logged out. Please run the "login" script to refresh cookies.', 10);
+        return true; // Don't retry if we're logged out, but do exit the loop gracefully.
+      }
       console.error(`Attempt ${attempt} failed:`, err);
       return false;
     });
